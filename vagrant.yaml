@@ -1,0 +1,101 @@
+- hosts: all
+  become: yes
+
+  vars:
+    user: zeestrat
+    uid: 10000
+    group: staff
+
+  tasks:
+    # Setup user
+    - name: Create user
+      user:
+        name: "{{ user }}"
+        uid: "{{ uid }}"
+        group: "{{ group }}"
+        groups: lxd
+        append: yes
+        shell: /bin/bash
+        password: "$6$9VnD4IIu10$7kBHJd8dvO0pDZgaP08xn/EmL9H.2Lz1jY2zxW304RQnF6GQH722f97IszmaZ2YTJehUscRreP8y8WmsKhqBj1"
+
+
+    - name: Add pubkey
+      authorized_key:
+        user: "{{ user }}"
+        key: "{{ lookup('file', '/Users/profile/.ssh/id_rsa.pub') }}"
+
+    - name: Copy .bashrc from vagrant user
+      command: "cp /home/vagrant/.bashrc /home/{{ user }}/.bashrc"
+      args:
+        creates: "/home/{{ user }}/.bashrc"
+
+    - name: Set permissions of .bashrc
+      file:
+        path: "/home/{{ user }}/.bashrc"
+        owner: "{{ user }}"
+        group: "{{ group }}"
+
+    - name: Copy .profile from vagrant user
+      command: "cp /home/vagrant/.profile /home/{{ user }}/.profile"
+      args:
+        creates: "/home/{{ user }}/.profile"
+
+    - name: Set permissions of .profile
+      file:
+        path: "/home/{{ user }}/.profile"
+        owner: "{{ user }}"
+        group: "{{ group }}"
+
+    - name: Set permissions of home
+      file:
+        path: "/home/{{ user }}"
+        owner: "{{ user }}"
+        group: "{{ group }}"
+
+    - name: Add things to profile
+      blockinfile:
+        path: "/home/{{ user }}/.bashrc"
+        content: |
+          # Juju
+          alias watch-juju='watch --color -n1 juju status --color'
+
+          # Charms
+          export JUJU_REPOSITORY=$HOME/dev/charms
+          export LAYER_PATH=$JUJU_REPOSITORY/layers
+          export INTERFACE_PATH=$JUJU_REPOSITORY/interfaces
+
+
+    # Setup packages
+    - name: Add repos
+      apt_repository:
+        repo: "{{ item }}"
+      with_items:
+        - ppa:juju/stable
+        - ppa:ubuntu-lxc/lxd-stable
+
+    - name: Install packages
+      apt:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - git
+        - htop
+        - juju
+        - zfs
+        - lxd
+
+    - name: Install snap packages
+      command: "snap install {{ item }}"
+      with_items:
+        - charm
+
+
+    # Setup LXD
+    - name: Setup LXD
+      command: "{{ item }}" 
+      with_items:
+        - lxd init --auto --storage-backend zfs --storage-create-loop 30 --storage-pool lxd
+        - lxc network create lxdbr0
+        - lxc network attach-profile lxdbr0 default eth0
+        - lxc network set lxdbr0 ipv6.address none
+      ignore_errors: yes
