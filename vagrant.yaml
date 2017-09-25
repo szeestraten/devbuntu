@@ -84,6 +84,8 @@
         - zfs
         - lxd
         - lxc-common
+        - python-pip
+        - virtualenv
 
     - name: Install snap packages
       command: "snap install {{ item }}"
