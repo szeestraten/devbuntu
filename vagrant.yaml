@@ -18,33 +18,27 @@
         shell: /bin/bash
         password: "$6$9VnD4IIu10$7kBHJd8dvO0pDZgaP08xn/EmL9H.2Lz1jY2zxW304RQnF6GQH722f97IszmaZ2YTJehUscRreP8y8WmsKhqBj1"
 
-
     - name: Add pubkey
       authorized_key:
         user: "{{ user }}"
         key: "{{ lookup('file', '/Users/profile/.ssh/id_rsa.pub') }}"
 
-    - name: Copy .bashrc from vagrant user
-      command: "cp /home/vagrant/.bashrc /home/{{ user }}/.bashrc"
+    - name: Copy bashrc and profile from vagrant user
+      command: "cp /home/vagrant/{{ item }} /home/{{ user }}/{{ item }}"
       args:
-        creates: "/home/{{ user }}/.bashrc"
+        creates: "/home/{{ user }}/{{ item }}"
+      with_items:
+        - .bashrc
+        - .profile
 
-    - name: Set permissions of .bashrc
+    - name: Set permissions of bashrc and profile
       file:
-        path: "/home/{{ user }}/.bashrc"
+        path: "/home/{{ user }}/{{ item }}"
         owner: "{{ user }}"
         group: "{{ group }}"
-
-    - name: Copy .profile from vagrant user
-      command: "cp /home/vagrant/.profile /home/{{ user }}/.profile"
-      args:
-        creates: "/home/{{ user }}/.profile"
-
-    - name: Set permissions of .profile
-      file:
-        path: "/home/{{ user }}/.profile"
-        owner: "{{ user }}"
-        group: "{{ group }}"
+      with_items:
+        - .bashrc
+        - .profile
 
     - name: Set permissions of home
       file:
@@ -72,6 +66,7 @@
       with_items:
         - ppa:juju/stable
         - ppa:ubuntu-lxc/lxd-stable
+        - ppa:rael-gc/rvm
 
     - name: Install packages
       apt:
@@ -79,17 +74,18 @@
         state: latest
       with_items:
         - git
-        - htop
         - juju
         - zfs
         - lxd
         - lxc-common
         - python-pip
-        - virtualenv
+        - python-tox
+        - rvm
 
     - name: Install snap packages
-      command: "snap install {{ item }}"
+      command: snap install "{{ item }}"
       with_items:
+        # - juju --classic
         - charm
 
 
