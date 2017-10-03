@@ -64,7 +64,6 @@
       apt_repository:
         repo: "{{ item }}"
       with_items:
-        - ppa:juju/stable
         - ppa:ubuntu-lxc/lxd-stable
         - ppa:rael-gc/rvm
 
@@ -73,20 +72,19 @@
         name: "{{ item }}"
         state: latest
       with_items:
-        - git
-        - juju
         - zfs
         - lxd
         - lxc-common
         - python-pip
         - python-tox
         - rvm
+        - bash-completion
 
-    - name: Install snap packages
-      command: snap install "{{ item }}"
-      with_items:
-        # - juju --classic
-        - charm
+    - name: Install juju
+      command: snap install juju --classic
+
+    - name: Install snap charm
+      command: snap install charm
 
 
     # Setup LXD
