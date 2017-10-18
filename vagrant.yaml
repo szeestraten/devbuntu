@@ -79,8 +79,10 @@
         - python-tox
         - rvm
         - bash-completion
+        - tree
+        - apt-cacher-ng
 
-    - name: Install juju
+    - name: Install juju snap
       command: snap install juju --classic
 
     - name: Install snap charm
@@ -96,3 +98,26 @@
         - lxc network attach-profile lxdbr0 default eth0
         - lxc network set lxdbr0 ipv6.address none
       ignore_errors: yes
+
+
+    # Setup Juju
+    - name: Run juju
+      command: /snap/bin/juju
+      become_user: "{{ user }}"
+
+    - name: Add juju lxd cloud config
+      blockinfile:
+        path: "/home/{{ user }}/.local/share/juju/clouds.yaml"
+        owner: "{{ user }}"
+        group: "{{ group }}"
+        mode: 0600
+        create: yes
+        content: |
+          clouds:
+            lxd:
+              type: lxd
+              config:
+                apt-http-proxy: http://{{ ansible_default_ipv4.address }}:3142
+                apt-https-proxy: http://{{ ansible_default_ipv4.address }}:3142
+                enable-os-upgrade: false
+
