@@ -100,10 +100,36 @@
       ignore_errors: yes
 
 
+    # Setup charm tools
+    - name: Run charm version to generate snap dir
+      command: /snap/bin/charm
+      become_user: "{{ user }}"
+      args:
+        creates: ~/snap/charm/
+
+    - name: Make sure charm tools dir is present
+      file:
+        path: ~/snap/charm/current/.local/share/juju
+        state: directory
+      become_user: "{{ user }}"
+
+    - name: Copy charm store token
+      command: cp ~/dev/secrets/store-usso-token-szeestraten ~/snap/charm/current/.local/share/juju/store-usso-token
+      become_user: "{{ user }}"
+      args:
+        creates: ~/snap/charm/current/.local/share/juju/store-usso-token
+
+    - name: Login to charm store
+      command: /snap/bin/charm login
+      become_user: "{{ user }}"
+
+
     # Setup Juju
-    - name: Run juju
+    - name: Run juju to generate juju dir
       command: /snap/bin/juju
       become_user: "{{ user }}"
+      args:
+        creates: ~/.local/share/juju
 
     - name: Add juju lxd cloud config
       blockinfile:
