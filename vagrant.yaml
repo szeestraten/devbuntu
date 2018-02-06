@@ -82,6 +82,16 @@
         - tree
         - apt-cacher-ng
 
+    - name: Enable passthrough for apt-cacher-ng for https
+      lineinfile:
+        path: /etc/apt-cacher-ng/acng.conf
+        line: 'PassThroughPattern: .*'
+
+    - name: Restart apt-cacher-ng server
+      service:
+        name: apt-cacher-ng
+        state: restarted
+
     - name: Install LXD
       apt:
         name: "{{ item }}"
