@@ -46,112 +46,48 @@
         owner: "{{ user }}"
         group: "{{ group }}"
 
-    - name: Add things to profile
+    - name: Add `watch-juju` alias and snap path to .bashrc
       blockinfile:
         path: "/home/{{ user }}/.bashrc"
         content: |
-          # Juju
+          # Add alias for easy watching of juju status
           alias watch-juju='watch --color -n1 juju status --color'
-
-          # Charms
-          export JUJU_REPOSITORY=$HOME/dev/charms
-          export LAYER_PATH=$JUJU_REPOSITORY/layers
-          export INTERFACE_PATH=$JUJU_REPOSITORY/interfaces
-
           # Add snaps to path
           export PATH=/snap/bin:$PATH
 
-
-    # Setup packages
-    - name: Add repos
-      apt_repository:
-        repo: "{{ item }}"
-      with_items:
-        - ppa:rael-gc/rvm
-
     - name: Install packages
       apt:
-        name: "{{ item }}"
-        state: latest
-      with_items:
-        - zfs
-        - python-pip
-        - python-tox
-        - rvm
-        - bash-completion
-        - tree
-        - apt-cacher-ng
-
-    - name: Enable passthrough for apt-cacher-ng for https
-      lineinfile:
-        path: /etc/apt-cacher-ng/acng.conf
-        line: 'PassThroughPattern: .*'
-
-    - name: Restart apt-cacher-ng server
-      service:
-        name: apt-cacher-ng
-        state: restarted
-
-    - name: Install LXD
-      apt:
-        name: "{{ item }}"
+        name: ["zfsutils-linux", "apt-cacher-ng", "python3", "python3-pip", "lxd", "lxd-client"]
         state: latest
         default_release: xenial-backports
-      with_items:
-        - lxd
-        - lxd-client
 
-    - name: Install juju snap
-      command: snap install juju --classic
+    - name: Install juju 2.4/stable snap
+      command: snap install juju --classic --channel=2.4/stable
 
-    - name: Install charm snap
-      command: snap install charm
-
-    # Setup LXD
-    - name: Setup LXD
-      command: "{{ item }}" 
-      with_items:
-        - lxd init --auto --storage-backend zfs --storage-create-loop 30 --storage-pool lxd
-        - lxc network create lxdbr0
-        - lxc network attach-profile lxdbr0 default eth0
-        - lxc network set lxdbr0 ipv6.address none
-      # environment:
-      #   PATH: "/snap/bin:{{ ansible_env.PATH }}"
-      ignore_errors: yes
-
-
-    # Setup charm tools
-    - name: Run charm version to generate snap dir
-      command: /snap/bin/charm
-      become_user: "{{ user }}"
-      args:
-        creates: ~/snap/charm/
-
-    - name: Make sure charm tools dir is present
-      file:
-        path: ~/snap/charm/current/.local/share/juju
-        state: directory
-      become_user: "{{ user }}"
-
-    - name: Copy charm store token
-      command: cp ~/dev/secrets/store-usso-token-szeestraten ~/snap/charm/current/.local/share/juju/store-usso-token
-      become_user: "{{ user }}"
-      args:
-        creates: ~/snap/charm/current/.local/share/juju/store-usso-token
-
-    - name: Login to charm store
-      command: /snap/bin/charm login
-      become_user: "{{ user }}"
-
-
-    # Setup Juju
     - name: Run juju to generate juju dir
       command: /snap/bin/juju
       become_user: "{{ user }}"
       args:
         creates: ~/.local/share/juju
 
-    - name: Add juju lxd cloud config
+    - name: Setup lxd
+      command: "{{ item }}"
+      with_items:
+        - lxd init --auto --storage-backend zfs --storage-create-loop 30 --storage-pool lxd
+        - lxc network set lxdbr0 ipv6.address none
+      ignore_errors: yes
+
+    - name: Configure apt-cacher-ng for https
+      lineinfile:
+        path: /etc/apt-cacher-ng/acng.conf
+        line: 'PassThroughPattern: .*'
+
+    - name: Restart apt-cacher-ng
+      service:
+        name: apt-cacher-ng
+        state: restarted
+
+    - name: Add apt proxy to juju config
       blockinfile:
         path: "/home/{{ user }}/.local/share/juju/clouds.yaml"
         owner: "{{ user }}"
@@ -166,4 +102,3 @@
                 apt-http-proxy: http://{{ ansible_default_ipv4.address }}:3142
                 apt-https-proxy: http://{{ ansible_default_ipv4.address }}:3142
                 enable-os-upgrade: false
-
