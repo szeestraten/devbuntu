@@ -5,40 +5,45 @@
     user: zeestrat
     uid: 10000
     group: staff
+    home_files:
+      - .bashrc
+      - .profile
+    juju_channel: 2.4/stable
+    charm_channel: latest/stable
 
   tasks:
-    # Setup user
-    - name: Create user
+    - name: Create "{{ user }}" user
       user: 
         name: "{{ user }}"
         uid: "{{ uid }}"
         group: "{{ group }}"
-        groups: "lxd,sudo"
+        groups: lxd,sudo
         append: yes
+        skeleton: /etc/skel
         shell: /bin/bash
-        password: "$6$9VnD4IIu10$7kBHJd8dvO0pDZgaP08xn/EmL9H.2Lz1jY2zxW304RQnF6GQH722f97IszmaZ2YTJehUscRreP8y8WmsKhqBj1"
 
-    - name: Add pubkey
+    - name: Get vagrant authorized keys
+      slurp:
+        src: /home/vagrant/.ssh/authorized_keys
+      register: authorized_keys
+
+    - name: Add authorized key to "{{ user }}"
       authorized_key:
         user: "{{ user }}"
-        key: "{{ lookup('file', '/Users/profile/.ssh/id_rsa.pub') }}"
+        key: "{{ authorized_keys.content | b64decode }}"
 
-    - name: Copy bashrc and profile from vagrant user
-      command: "cp /home/vagrant/{{ item }} /home/{{ user }}/{{ item }}"
+    - name: Copy home files from skeleton
+      command: "cp /etc/skel/{{ item }} /home/{{ user }}/{{ item }}"
       args:
         creates: "/home/{{ user }}/{{ item }}"
-      with_items:
-        - .bashrc
-        - .profile
+      with_items: "{{ home_files }}"
 
-    - name: Set permissions of bashrc and profile
+    - name: Set permissions of home files
       file:
         path: "/home/{{ user }}/{{ item }}"
         owner: "{{ user }}"
         group: "{{ group }}"
-      with_items:
-        - .bashrc
-        - .profile
+      with_items: "{{ home_files }}"
 
     - name: Set permissions of home
       file:
@@ -55,14 +60,26 @@
           # Add snaps to path
           export PATH=/snap/bin:$PATH
 
-    - name: Install packages
+    - name: Install apt packages
       apt:
-        name: ["zfsutils-linux", "apt-cacher-ng", "python3", "python3-pip", "lxd", "lxd-client"]
+        name: 
+          - lxd
+          - zfsutils-linux
+          - apt-cacher-ng
+          - python3
+          - python3-pip
         state: latest
         default_release: xenial-backports
 
-    - name: Install juju 2.4/stable snap
-      command: snap install juju --classic --channel=2.4/stable
+    - name: Install charm "{{ charm_channel }}" snap
+      command: "snap install charm --classic --channel={{ charm_channel }}"
+      args:
+        creates: /snap/charm
+
+    - name: Install juju "{{ juju_channel }}" snap
+      command: "snap install juju --classic --channel={{ juju_channel }}"
+      args:
+        creates: /snap/juju
 
     - name: Run juju to generate juju dir
       command: /snap/bin/juju
@@ -81,11 +98,7 @@
       lineinfile:
         path: /etc/apt-cacher-ng/acng.conf
         line: 'PassThroughPattern: .*'
-
-    - name: Restart apt-cacher-ng
-      service:
-        name: apt-cacher-ng
-        state: restarted
+      notify: restart apt-cacher-ng
 
     - name: Add apt proxy to juju config
       blockinfile:
@@ -102,3 +115,9 @@
                 apt-http-proxy: http://{{ ansible_default_ipv4.address }}:3142
                 apt-https-proxy: http://{{ ansible_default_ipv4.address }}:3142
                 enable-os-upgrade: false
+
+  handlers:
+    - name: restart apt-cacher-ng
+      service:
+        name: apt-cacher-ng
+        state: restarted
