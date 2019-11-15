@@ -6,6 +6,9 @@ Vagrant.configure(2) do |config|
     # Forward SSH agent
     dev.ssh.forward_agent = true
 
+    # Port forward
+    dev.vm.network "forwarded_port", guest: 80, host: 80
+
     # Setup shared project directory
     dev.vm.synced_folder "../", "/home/zeestrat/dev", owner: "10000", group: "50"
 
