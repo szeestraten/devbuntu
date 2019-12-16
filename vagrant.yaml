@@ -62,6 +62,32 @@
           # Add snaps to path
           export PATH=/snap/bin:$PATH
 
+    - name: Create ./local/bin directory
+      file:
+        path: "/home/{{ user }}/.local/bin"
+        owner: "{{ user }}"
+        group: "{{ group }}"
+
+    - name: Create juju-portforward plugin
+      copy:
+        dest: "/home/{{ user }}/.local/bin/juju-portforward"
+        mode: "0755"
+        content: |
+          #!/usr/bin/env bash
+          juju ssh $1 -L 0.0.0.0:$2:localhost:$3
+
+
+    - name: Add `watch-juju` alias and snap path to .bashrc
+      blockinfile:
+        path: "/home/{{ user }}/.bashrc"
+        content: |
+          # Add alias for easy watching of juju status
+          alias watch-juju='watch --color -n1 juju status --color'
+          # Add alias for bootstrapping juju with apt proxy
+          alias bootstrap-juju='juju bootstrap lxd --no-gui --model-default apt-proxy.yaml'
+          # Add snaps to path
+          export PATH=/snap/bin:$PATH
+
     - name: Install apt packages
       apt:
         name: 
