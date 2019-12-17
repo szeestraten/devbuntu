@@ -9,8 +9,11 @@ Vagrant.configure(2) do |config|
     # Port forward
     dev.vm.network "forwarded_port", guest: 8080, host: 8080
 
-    # Setup shared project directory
+    # Shared folder
     dev.vm.synced_folder "../", "/home/zeestrat/dev", owner: "10000", group: "50"
+
+    # Disable default shared folder
+    dev.vm.synced_folder ".", "/vagrant", disabled: true
 
     # Run playbook
     dev.vm.provision "ansible" do |ansible|

@@ -1,6 +1,5 @@
 - hosts: all
   become: yes
-
   vars:
     user: zeestrat
     uid: 10000
@@ -10,8 +9,11 @@
       - .profile
     juju_channel: 2.6/stable
     charm_channel: latest/stable
-
   tasks:
+    - name: Set timezone to Europe/Oslo
+      timezone:
+        name: Europe/Oslo
+
     - name: Create "{{ user }}" user
       user: 
         name: "{{ user }}"
@@ -64,9 +66,13 @@
 
     - name: Create ./local/bin directory
       file:
-        path: "/home/{{ user }}/.local/bin"
+        path: "/home/{{ user }}/{{ item }}"
+        state: directory
         owner: "{{ user }}"
         group: "{{ group }}"
+      loop:
+        - .local
+        - .local/bin
 
     - name: Create juju-portforward plugin
       copy:
