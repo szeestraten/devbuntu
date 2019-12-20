@@ -7,7 +7,7 @@
     home_files:
       - .bashrc
       - .profile
-    juju_channel: 2.6/stable
+    juju_channel: 2.7/stable
     charm_channel: latest/stable
   tasks:
     - name: Set timezone to Europe/Oslo
