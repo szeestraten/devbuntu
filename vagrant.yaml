@@ -74,9 +74,9 @@
         - .local
         - .local/bin
 
-    - name: Create juju-portforward plugin
+    - name: Create juju-port-forward plugin
       copy:
-        dest: "/home/{{ user }}/.local/bin/juju-portforward"
+        dest: "/home/{{ user }}/.local/bin/juju-port-forward"
         mode: "0755"
         content: |
           #!/usr/bin/env bash
