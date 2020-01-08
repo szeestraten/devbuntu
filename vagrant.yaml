@@ -94,7 +94,7 @@
           # Add snaps to path
           export PATH=/snap/bin:$PATH
 
-    - name: Install apt packages
+    - name: Install apt packages for Ubuntu Xenial 16.04
       apt:
         name: 
           - lxd
@@ -106,6 +106,19 @@
           - python3-pip
         state: latest
         default_release: xenial-backports
+      when: ansible_distribution_release == 'xenial'
+
+    - name: Install apt packages for Ubuntu Bionic 18.04
+      apt:
+        name:
+          - lxd
+          - zfsutils-linux
+          - bash-completion
+          - apt-cacher-ng
+          - python-tox
+          - python3-pip
+        state: latest
+      when: ansible_distribution_release == 'bionic'
 
     - name: Install charm "{{ charm_channel }}" snap
       command: "snap install charm --classic --channel={{ charm_channel }}"
