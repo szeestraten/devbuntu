@@ -8,6 +8,7 @@ Vagrant.configure(2) do |config|
 
     # Port forward
     dev.vm.network "forwarded_port", guest: 8080, host: 8080
+    dev.vm.network "forwarded_port", guest: 8081, host: 8081
 
     # Shared folder
     dev.vm.synced_folder "../", "/home/zeestrat/dev", owner: "10000", group: "50"
@@ -36,6 +37,7 @@ Vagrant.configure(2) do |config|
 
     # Port forward
     dev.vm.network "forwarded_port", guest: 8080, host: 8080
+    dev.vm.network "forwarded_port", guest: 8081, host: 8081
 
     # Shared folder
     dev.vm.synced_folder "../", "/home/zeestrat/dev", owner: "10000", group: "50"
