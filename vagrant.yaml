@@ -104,6 +104,8 @@
           - python-tox
           - python3
           - python3-pip
+          - docker.io
+          - docker-compose
         state: latest
         default_release: xenial-backports
       when: ansible_distribution_release == 'xenial'
@@ -117,8 +119,16 @@
           - apt-cacher-ng
           - python-tox
           - python3-pip
+          - docker.io
+          - docker-compose
         state: latest
       when: ansible_distribution_release == 'bionic'
+
+    - name: Add "{{ user }}" to docker group
+      user:
+        name: "{{ user }}"
+        groups: docker
+        append: yes
 
     - name: Install charm "{{ charm_channel }}" snap
       command: "snap install charm --classic --channel={{ charm_channel }}"
