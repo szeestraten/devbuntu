@@ -59,8 +59,10 @@
         content: |
           # Add alias for easy watching of juju status
           alias watch-juju='watch --color -n1 juju status --color'
+          # Add alias for bootstrapping juju
+          alias bootstrap-juju='juju bootstrap lxd --no-gui'
           # Add alias for bootstrapping juju with apt proxy
-          alias bootstrap-juju='juju bootstrap lxd --no-gui --model-default apt-proxy.yaml'
+          alias bootstrap-juju-proxy='juju bootstrap lxd --no-gui --model-default apt-proxy.yaml'
           # Add snaps to path
           export PATH=/snap/bin:$PATH
 
