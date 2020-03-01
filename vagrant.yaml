@@ -58,7 +58,7 @@
         path: "/home/{{ user }}/.bashrc"
         content: |
           # Add alias for easy watching of juju status
-          alias watch-juju='watch --color -n1 juju status --color'
+          alias watch-juju='watch --color -n1 juju status --relations --color'
           # Add alias for bootstrapping juju
           alias bootstrap-juju='juju bootstrap lxd --no-gui'
           # Add alias for bootstrapping juju with apt proxy
