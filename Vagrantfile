@@ -25,6 +25,7 @@ Vagrant.configure(2) do |config|
     dev.vm.provider "virtualbox" do |vbox|
       vbox.memory = 4096
       vbox.cpus = 2
+      vbox.customize ["modifyvm", :id, "--nested-hw-virt", "on"]
     end
   end
 
@@ -54,6 +55,7 @@ Vagrant.configure(2) do |config|
     dev.vm.provider "virtualbox" do |vbox|
       vbox.memory = 4096
       vbox.cpus = 2
+      vbox.customize ["modifyvm", :id, "--nested-hw-virt", "on"]
     end
   end
 end
