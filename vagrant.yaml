@@ -100,6 +100,14 @@
           #!/usr/bin/env bash
           juju ssh $1 -L 0.0.0.0:$2:localhost:$3
 
+    - name: Add yarn repo key
+      apt_key:
+        url: https://dl.yarnpkg.com/debian/pubkey.gpg
+
+    - name: Add yarn repo
+      apt_repository:
+        repo: deb https://dl.yarnpkg.com/debian/ stable main
+
     - name: Install dive
       apt:
         deb: https://github.com/wagoodman/dive/releases/download/v0.9.2/dive_0.9.2_linux_amd64.deb
@@ -116,6 +124,7 @@
           - python3-pip
           - docker.io
           - docker-compose
+          - yarn
         state: latest
         default_release: xenial-backports
       when: ansible_distribution_release == 'xenial'
@@ -131,6 +140,7 @@
           - python3-pip
           - docker.io
           - docker-compose
+          - yarn
         state: latest
       when: ansible_distribution_release == 'bionic'
 

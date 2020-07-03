@@ -7,6 +7,7 @@ Vagrant.configure(2) do |config|
     dev.ssh.forward_agent = true
 
     # Port forward
+    dev.vm.network "forwarded_port", guest: 5000, host: 5000
     dev.vm.network "forwarded_port", guest: 8080, host: 8080
     dev.vm.network "forwarded_port", guest: 8081, host: 8081
 
@@ -37,6 +38,7 @@ Vagrant.configure(2) do |config|
     dev.ssh.forward_agent = true
 
     # Port forward
+    dev.vm.network "forwarded_port", guest: 5000, host: 5000
     dev.vm.network "forwarded_port", guest: 8080, host: 8080
     dev.vm.network "forwarded_port", guest: 8081, host: 8081
 
