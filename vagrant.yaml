@@ -53,6 +53,22 @@
         owner: "{{ user }}"
         group: "{{ group }}"
 
+    - name: Create .docker directory
+      file:
+        path: "/home/{{ user }}/.docker"
+        state: directory
+        owner: "{{ user }}"
+        group: "{{ group }}"
+        mode: "0700"
+
+    - name: Copy docker.json
+      copy:
+        src: "/Users/{{ user }}/.docker/config.json"
+        dest: "/home/{{ user }}/.docker/config.json"
+        owner: "{{ user }}"
+        group: "{{ group }}"
+        mode: "0600"
+
     - name: Add `watch-juju` alias and snap path to .bashrc
       blockinfile:
         path: "/home/{{ user }}/.bashrc"
